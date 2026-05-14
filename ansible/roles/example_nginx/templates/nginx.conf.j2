@@ -1,0 +1,30 @@
+# Managed by Ansible. Do not edit by hand.
+user {{ example_nginx_config.nginx.user }};
+worker_processes {{ example_nginx_config.nginx.worker_processes }};
+
+error_log {{ example_nginx_config.paths.log_dir }}/error.log warn;
+pid /run/nginx.pid;
+
+events {
+    worker_connections {{ example_nginx_config.nginx.worker_connections }};
+}
+
+http {
+    include {{ example_nginx_config.paths.mime_types }};
+    default_type application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log {{ example_nginx_config.paths.log_dir }}/access.log main;
+
+    sendfile {{ 'on' if example_nginx_config.nginx.sendfile else 'off' }};
+    tcp_nopush {{ 'on' if example_nginx_config.nginx.tcp_nopush else 'off' }};
+    keepalive_timeout {{ example_nginx_config.nginx.keepalive_timeout }};
+    server_tokens {{ 'on' if example_nginx_config.nginx.server_tokens else 'off' }};
+    gzip {{ 'on' if example_nginx_config.nginx.gzip else 'off' }};
+    client_max_body_size {{ example_nginx_config.nginx.client_max_body_size }};
+
+    include {{ example_nginx_config.paths.conf_d }}/*.conf;
+}

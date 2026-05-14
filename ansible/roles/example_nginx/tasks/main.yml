@@ -1,0 +1,206 @@
+---
+# Adapted from the reusable Wazuh role loader in nwarila-platform/wazuh.
+# Keep role-specific NGINX behavior in state/OS task files, not here.
+
+- name: Info | Entering NGINX role
+  block:
+    - name: Init | Validate required inputs
+      ansible.builtin.assert:
+        that:
+          - ENV is defined
+          - (ENV | string | trim | length) > 0
+          - (ENV | string | trim) is match('^[a-zA-Z0-9_-]+$')
+        fail_msg: >-
+          The ENV variable is required and may contain only letters, numbers,
+          underscores, and hyphens.
+        quiet: true
+
+    - name: Init | Load required setup facts
+      when: >-
+        ansible_facts.os_family is not defined
+        or ansible_facts.distribution is not defined
+        or ansible_facts.distribution_major_version is not defined
+      ansible.builtin.setup:
+        gather_subset:
+          - "!all"
+          - "!min"
+          - distribution
+
+    - name: Init | Build OS resolution candidates
+      vars:
+        example_nginx_env: "{{ ENV | string | lower | trim }}"
+        example_nginx_family: "{{ ansible_facts.os_family | lower | replace(' ', '_') }}"
+        example_nginx_distribution: "{{ ansible_facts.distribution | lower | replace(' ', '_') }}"
+        example_nginx_version: "{{ ansible_facts.distribution_major_version }}"
+        example_nginx_candidates:
+          - "{{ example_nginx_family }}"
+          - "{{ example_nginx_family ~ '_' ~ example_nginx_distribution }}"
+          - "{{ example_nginx_family ~ '_' ~ example_nginx_distribution ~ '_' ~ example_nginx_version }}"
+      ansible.builtin.set_fact:
+        example_nginx_var_candidates: >-
+          {{ example_nginx_candidates
+             | product(['', '_' ~ example_nginx_env])
+             | map('join')
+             | list }}
+        example_nginx_playbook_candidates: "{{ example_nginx_candidates | reverse | list }}"
+
+    - name: Init | Initialize running configuration
+      no_log: true
+      ansible.builtin.set_fact:
+        example_nginx_running_config: "{{ lookup('vars', role_name ~ '_defaults', default={}) }}"
+
+    - name: Init | Load OS overlays
+      no_log: true
+      loop: "{{ example_nginx_var_candidates }}"
+      loop_control:
+        loop_var: example_nginx_overlay_name
+      vars:
+        example_nginx_current_config: "{{ example_nginx_running_config | default({}) }}"
+        example_nginx_overlay_path: "{{ role_path ~ '/vars/' ~ example_nginx_overlay_name ~ '.yml' }}"
+        example_nginx_raw_overlay: >-
+          {{ lookup('file', example_nginx_overlay_path, errors='ignore')
+             | from_yaml
+             | default({}, true) }}
+        example_nginx_overlay_config: >-
+          {{ example_nginx_raw_overlay.get(role_name ~ '_overlay', example_nginx_raw_overlay) }}
+      when:
+        - example_nginx_overlay_config is mapping
+        - example_nginx_overlay_config | length > 0
+      ansible.builtin.set_fact:
+        example_nginx_running_config: >-
+          {{ example_nginx_current_config
+             | combine(example_nginx_overlay_config, recursive=True, list_merge='replace') }}
+
+    - name: Init | Load user overrides
+      no_log: true
+      vars:
+        example_nginx_base_config: "{{ example_nginx_running_config | default({}) }}"
+        example_nginx_overrides: "{{ lookup('vars', role_name, default={}) }}"
+      when:
+        - example_nginx_overrides is mapping
+        - example_nginx_overrides | length > 0
+      ansible.builtin.set_fact:
+        example_nginx_running_config: >-
+          {{ example_nginx_base_config
+             | combine(example_nginx_overrides, recursive=True, list_merge='replace') }}
+
+    - name: Init | Resolve role state
+      no_log: true
+      vars:
+        example_nginx_state_value: >-
+          {{ example_nginx_running_config.state | default('present') | string | lower | trim }}
+      ansible.builtin.set_fact:
+        example_nginx_role_state: "{{ example_nginx_state_value }}"
+        example_nginx_running_config: >-
+          {{ example_nginx_running_config | combine({'state': example_nginx_state_value}) }}
+
+    - name: Init | Validate role state
+      ansible.builtin.assert:
+        that:
+          - example_nginx_role_state in ['present', 'absent', 'clean']
+        fail_msg: >-
+          Invalid role state '{{ example_nginx_role_state }}'.
+          Allowed values: present, absent, clean.
+        quiet: true
+
+    - name: Init | Scope passwords to role-required keys
+      no_log: true
+      vars:
+        example_nginx_required_keys: "{{ lookup('vars', role_name ~ '_required_passwords', default=[]) }}"
+        example_nginx_all_passwords: "{{ example_nginx_running_config.passwords | default({}) }}"
+      when:
+        - example_nginx_required_keys | length > 0
+        - example_nginx_all_passwords | length > 0
+      ansible.builtin.set_fact:
+        example_nginx_running_config: >-
+          {{ example_nginx_running_config | combine({
+               'passwords': (example_nginx_all_passwords
+                             | dict2items
+                             | selectattr('key', 'in', example_nginx_required_keys)
+                             | items2dict)
+             }) }}
+
+    - name: Init | Resolve temporary directory parent
+      no_log: true
+      ansible.builtin.set_fact:
+        example_nginx_temp_parent: >-
+          {{ example_nginx_running_config.runtime.temp_parent | default('/tmp/ansible-example-nginx') }}
+
+    - name: Init | Ensure temporary directory parent exists
+      become: "{{ example_nginx_running_config.runtime.become | default(false) | bool }}"
+      changed_when: false
+      ansible.builtin.file:
+        path: "{{ example_nginx_temp_parent }}"
+        state: directory
+        mode: "0700"
+
+    - name: Init | Create temporary directory
+      become: "{{ example_nginx_running_config.runtime.become | default(false) | bool }}"
+      changed_when: false
+      register: example_nginx_temp_dir
+      ansible.builtin.tempfile:
+        state: directory
+        path: "{{ example_nginx_temp_parent }}"
+        prefix: "ansible_{{ role_name }}_"
+
+    - name: Init | Secure temporary directory
+      become: "{{ example_nginx_running_config.runtime.become | default(false) | bool }}"
+      changed_when: false
+      when: example_nginx_temp_dir.path is defined
+      ansible.builtin.file:
+        path: "{{ example_nginx_temp_dir.path }}"
+        state: directory
+        mode: "0700"
+
+    - name: Process | Resolve OS task file
+      vars:
+        example_nginx_os_task_candidates:
+          - "{{ example_nginx_role_state }}_{{ example_nginx_playbook_candidates[0] }}.yml"
+          - "{{ example_nginx_role_state }}_{{ example_nginx_playbook_candidates[1] }}.yml"
+          - "{{ example_nginx_role_state }}_{{ example_nginx_playbook_candidates[2] }}.yml"
+        example_nginx_first_found:
+          files: "{{ example_nginx_os_task_candidates }}"
+          paths:
+            - "{{ role_path }}/tasks"
+          skip: true
+      ansible.builtin.set_fact:
+        example_nginx_os_task_file: "{{ lookup('ansible.builtin.first_found', example_nginx_first_found) }}"
+
+    - name: Process | Fail when OS task file is missing
+      when: example_nginx_os_task_file | default('') | length == 0
+      vars:
+        example_nginx_os_task_candidates:
+          - "{{ example_nginx_role_state }}_{{ example_nginx_playbook_candidates[0] }}.yml"
+          - "{{ example_nginx_role_state }}_{{ example_nginx_playbook_candidates[1] }}.yml"
+          - "{{ example_nginx_role_state }}_{{ example_nginx_playbook_candidates[2] }}.yml"
+      ansible.builtin.fail:
+        msg: >-
+          No OS task file found for state='{{ example_nginx_role_state }}'.
+          Searched {{ example_nginx_os_task_candidates | join(', ') }}.
+
+    - name: Process | Run OS task file
+      ansible.builtin.include_tasks: "{{ example_nginx_os_task_file }}"
+      vars:
+        example_nginx_config: "{{ example_nginx_running_config }}"
+
+  always:
+    - name: Cleanup | Remove temporary directory
+      become: "{{ ((example_nginx_running_config | default({})).runtime | default({})).become | default(false) | bool }}"
+      changed_when: false
+      when:
+        - example_nginx_temp_dir is defined
+        - example_nginx_temp_dir.path is defined
+      ansible.builtin.file:
+        path: "{{ example_nginx_temp_dir.path }}"
+        state: absent
+
+    - name: Cleanup | Drop role-scoped scratch facts
+      no_log: true
+      ansible.builtin.set_fact:
+        example_nginx_running_config: {}
+        example_nginx_var_candidates: []
+        example_nginx_playbook_candidates: []
+        example_nginx_os_task_file: ""
+        example_nginx_role_state: ""
+        example_nginx_temp_dir: {}
+        example_nginx_temp_parent: ""

@@ -1,0 +1,15 @@
+---
+example_nginx_overlay:
+  package:
+    manager: dnf
+  nginx:
+    user: nginx
+    group: nginx
+  paths:
+    config: /etc/nginx/nginx.conf
+    config_dir: /etc/nginx
+    conf_d: /etc/nginx/conf.d
+    default_site: /etc/nginx/conf.d/example_nginx.conf
+    mime_types: /etc/nginx/mime.types
+    web_root: /usr/share/nginx/html
+    log_dir: /var/log/nginx

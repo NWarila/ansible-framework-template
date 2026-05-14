@@ -1,0 +1,10 @@
+---
+- name: Absent | Run shared Linux removal
+  ansible.builtin.import_tasks: absent_linux.yml
+
+- name: Absent | Remove NGINX package with apt
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: example_nginx_config.package.remove_on_absent | bool
+  ansible.builtin.apt:
+    name: "{{ example_nginx_config.package.names }}"
+    state: absent

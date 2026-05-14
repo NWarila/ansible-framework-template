@@ -1,0 +1,20 @@
+---
+- name: Absent | Remove managed default site
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  notify: Nginx | Reload nginx
+  ansible.builtin.file:
+    path: "{{ example_nginx_config.paths.default_site }}"
+    state: absent
+
+- name: Absent | Remove managed index page
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  ansible.builtin.file:
+    path: "{{ example_nginx_config.paths.web_root }}/{{ example_nginx_config.default_site.index_file }}"
+    state: absent
+
+- name: Absent | Remove web root when requested
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: example_nginx_config.cleanup.remove_web_root_on_absent | bool
+  ansible.builtin.file:
+    path: "{{ example_nginx_config.paths.web_root }}"
+    state: absent

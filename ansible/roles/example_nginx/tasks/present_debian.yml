@@ -1,0 +1,11 @@
+---
+- name: Present | Install NGINX package with apt
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  ansible.builtin.apt:
+    name: "{{ example_nginx_config.package.names }}"
+    state: "{{ example_nginx_config.package.state }}"
+    update_cache: "{{ example_nginx_config.package.update_cache }}"
+    cache_valid_time: "{{ example_nginx_config.package.cache_valid_time }}"
+
+- name: Present | Run shared Linux configuration
+  ansible.builtin.import_tasks: present_linux.yml

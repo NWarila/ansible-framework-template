@@ -35,6 +35,7 @@ python tools/verify.py integration
 | [`ansible/inventory/localhost.yml`](ansible/inventory/localhost.yml) | Credential-free reference inventory. |
 | [`ansible/playbooks/site.yml`](ansible/playbooks/site.yml) | Reference entrypoint playbook. |
 | [`ansible/roles/baseline/`](ansible/roles/baseline/) | Minimal role that validates variables and writes integration evidence. |
+| [`ansible/roles/example_nginx/`](ansible/roles/example_nginx/) | Production-shaped example role with OS normalization, package install, templates, handlers, and lifecycle states. |
 | [`examples/reference/framework-vars.yml`](examples/reference/framework-vars.yml) | Example framework input used by CI. |
 
 ## Normalized Repo Interface
@@ -62,7 +63,7 @@ ansible-playbook \
 For a real Ansible framework derived from this template, edit these first:
 
 1. `README.md` and repo-specific docs.
-2. `ansible/roles/` and `ansible/playbooks/site.yml`.
+2. `ansible/roles/` and `ansible/playbooks/site.yml`. Use `ansible/roles/example_nginx/` as the role-format reference.
 3. `ansible/requirements.yml` with exact collection/role pins.
 4. `examples/` for safe local and CI inputs.
 5. `docs/decision-records/repo/` for local decisions.

@@ -1,0 +1,15 @@
+---
+example_nginx_overlay:
+  package:
+    manager: apt
+  nginx:
+    user: www-data
+    group: www-data
+  paths:
+    config: /etc/nginx/nginx.conf
+    config_dir: /etc/nginx
+    conf_d: /etc/nginx/conf.d
+    default_site: /etc/nginx/conf.d/example_nginx.conf
+    mime_types: /etc/nginx/mime.types
+    web_root: /var/www/example_nginx
+    log_dir: /var/log/nginx

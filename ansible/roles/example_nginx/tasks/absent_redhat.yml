@@ -1,0 +1,11 @@
+---
+- name: Absent | Run shared Linux removal
+  ansible.builtin.import_tasks: absent_linux.yml
+
+- name: Absent | Remove NGINX package with dnf
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: example_nginx_config.package.remove_on_absent | bool
+  ansible.builtin.dnf:
+    name: "{{ example_nginx_config.package.names }}"
+    state: absent
+    lock_timeout: "{{ example_nginx_config.package.lock_timeout }}"

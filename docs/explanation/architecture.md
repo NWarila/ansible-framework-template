@@ -6,5 +6,9 @@ The repo-quality surface includes workflow pinning, security scans, OPA policy, 
 
 The Ansible implementation lives under `ansible/`. The reference role is deliberately small: it validates variables and writes evidence. That keeps CI credential-free while still proving that the controller can load inventory, variables, roles, templates, and playbooks.
 
-Callers such as Terraform and Packer repos use the reusable workflow to check out this framework, overlay caller-owned data into safe Ansible paths, install the pinned Ansible toolchain, lint, syntax-check, and run the playbook.
+The `example_nginx` role is the fuller application example. It keeps the reusable
+loader in `tasks/main.yml`, pushes application behavior into OS and lifecycle task
+files, and shows how defaults, overlays, templates, handlers, and service
+validation fit together.
 
+Callers such as Terraform and Packer repos use the reusable workflow to check out this framework, overlay caller-owned data into safe Ansible paths, install the pinned Ansible toolchain, lint, syntax-check, and run the playbook.
