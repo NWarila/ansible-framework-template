@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: baseline
+  author: NWarila
+  description: Credential-free reference role for ansible-framework-template.
+  license: MIT
+  min_ansible_version: "2.18"
+  platforms:
+    - name: GenericLinux
+      versions:
+        - all
+dependencies: []

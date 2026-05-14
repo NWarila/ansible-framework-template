@@ -1,0 +1,7 @@
+---
+all:
+  children:
+    framework_targets:
+      hosts:
+        localhost:
+          ansible_connection: local

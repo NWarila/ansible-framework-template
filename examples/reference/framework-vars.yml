@@ -1,0 +1,8 @@
+---
+baseline_profile: reference
+baseline_output_dir: "{{ playbook_dir }}/../../.tmp/ansible-framework/reference"
+baseline_managed_files:
+  - path: "{{ baseline_output_dir }}/run-evidence.json"
+    purpose: Credential-free integration evidence.
+  - path: "{{ baseline_output_dir }}/configured.txt"
+    purpose: Human-readable marker for integration runs.

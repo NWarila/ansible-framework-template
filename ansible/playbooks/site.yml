@@ -1,0 +1,9 @@
+---
+- name: Run reference Ansible framework
+  hosts: framework_targets
+  gather_facts: false
+  become: false
+  vars_files:
+    - ../vars/reference.yml
+  roles:
+    - role: baseline

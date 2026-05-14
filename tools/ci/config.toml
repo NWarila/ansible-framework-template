@@ -1,0 +1,12 @@
+default_case = "reference"
+ansible_root = "ansible"
+
+[[cases]]
+name = "reference"
+inventory = "ansible/inventory/localhost.yml"
+playbook = "ansible/playbooks/site.yml"
+extra_vars_file = "examples/reference/framework-vars.yml"
+expected_evidence = ".tmp/ansible-framework/reference/run-evidence.json"
+expected_profile = "reference"
+expected_host = "localhost"
+
