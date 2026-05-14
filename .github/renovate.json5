@@ -1,0 +1,83 @@
+{
+  // Schema for editor validation. Update only when intentionally adopting a new schema.
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Renovate config for NWarila/ansible-framework-template. This template
+  // pins third-party GitHub Actions by SHA, Python tooling exactly, and
+  // Ansible Galaxy collections/roles through ansible/requirements.yml.
+
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)"
+  ],
+
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+
+  "enabledManagers": [
+    "github-actions",
+    "pre-commit",
+    "pip_requirements",
+    "ansible-galaxy",
+    "custom.regex"
+  ],
+
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/",
+        "/^tools/.*\\.sh$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: packageName=(?<packageName>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?\\s+\\w+(?:_VERSION)?:\\s*\"(?<currentValue>[^\"]+)\"",
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: packageName=(?<packageName>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?\\s+\\w+_VERSION=\"(?<currentValue>[^\"]+)\"",
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: packageName=(?<packageName>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?\\s+pip install --no-cache-dir (?<depName2>[a-zA-Z0-9-._]+)==(?<currentValue>[^\\s]+)"
+      ]
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/"
+      ],
+      "datasourceTemplate": "git-refs",
+      "versioningTemplate": "loose",
+      "matchStrings": [
+        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref|source-ref):\\s*(?<currentDigest>[0-9a-f]{40})"
+      ]
+    }
+  ],
+
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchManagers": ["pip_requirements", "pre-commit", "ansible-galaxy"],
+      "rangeStrategy": "pin",
+      "semanticCommitType": "deps",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchDepNames": ["ansible-core", "ansible-lint"],
+      "groupName": "Ansible toolchain",
+      "semanticCommitType": "deps",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchDepNames": ["actions/setup-python"],
+      "groupName": "actions/setup-python",
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps"
+    }
+  ]
+}
+

@@ -1,0 +1,9 @@
+---
+profile: production
+exclude_paths:
+  - .tmp/
+  - ansible/collections/
+  - ansible/.roles/
+warn_list:
+  - experimental
+

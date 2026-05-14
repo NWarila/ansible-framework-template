@@ -1,0 +1,199 @@
+name: Reusable Ansible Framework Run
+
+# Reusable workflow consumed by Terraform and Packer repos after they
+# provision systems and need to apply this Ansible framework.
+
+on:
+  workflow_call:
+    inputs:
+      framework_ref:
+        description: 40-character commit SHA of this Ansible framework.
+        required: true
+        type: string
+      consumer_repo:
+        description: owner/repo of the caller. Defaults to github.repository.
+        required: false
+        type: string
+        default: ""
+      consumer_ref:
+        description: Git ref of the caller. Defaults to github.sha.
+        required: false
+        type: string
+        default: ""
+      overlay_paths:
+        description: |
+          Newline-separated `<consumer-src>=><framework-dst>` entries.
+          Destinations must stay under ansible/files, ansible/templates,
+          ansible/vars, ansible/inventory, or ansible/fixtures/runtime.
+        required: false
+        type: string
+        default: ""
+      inventory_file:
+        description: Inventory path inside the framework checkout.
+        required: false
+        type: string
+        default: ansible/inventory/localhost.yml
+      playbook_file:
+        description: Playbook path inside the framework checkout.
+        required: false
+        type: string
+        default: ansible/playbooks/site.yml
+      extra_vars_files:
+        description: Newline-separated caller-owned extra vars files.
+        required: false
+        type: string
+        default: ""
+      check_mode:
+        description: Run ansible-playbook with --check.
+        required: false
+        type: boolean
+        default: true
+      ansible_core_version:
+        description: Exact ansible-core version to install.
+        required: false
+        type: string
+        default: "2.18.6"
+      ansible_lint_version:
+        description: Exact ansible-lint version to install.
+        required: false
+        type: string
+        default: "25.6.1"
+      upload_evidence:
+        description: Upload .tmp/ansible-framework evidence.
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: ansible framework run
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Resolve caller defaults
+        id: refs
+        env:
+          OVERRIDE_REPO: ${{ inputs.consumer_repo }}
+          OVERRIDE_REF: ${{ inputs.consumer_ref }}
+          FALLBACK_REPO: ${{ github.repository }}
+          FALLBACK_REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          repo="${OVERRIDE_REPO:-$FALLBACK_REPO}"
+          ref="${OVERRIDE_REF:-$FALLBACK_REF}"
+          echo "consumer_repo=${repo}" >> "${GITHUB_OUTPUT}"
+          echo "consumer_ref=${ref}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check out framework at framework_ref
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: NWarila/ansible-framework-template
+          ref: ${{ inputs.framework_ref }}
+          path: framework
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate framework_ref
+        env:
+          FRAMEWORK_REF: ${{ inputs.framework_ref }}
+        run: bash framework/tools/ci/validate_framework_ref.sh "${FRAMEWORK_REF}"
+
+      - name: Check out consumer at consumer_ref
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ steps.refs.outputs.consumer_repo }}
+          ref: ${{ steps.refs.outputs.consumer_ref }}
+          path: consumer
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Apply overlay
+        if: ${{ inputs.overlay_paths != '' }}
+        env:
+          OVERLAY_PATHS: ${{ inputs.overlay_paths }}
+        run: bash framework/tools/ci/apply_overlay.sh consumer framework "${OVERLAY_PATHS}"
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        env:
+          ANSIBLE_CORE_VERSION: ${{ inputs.ansible_core_version }}
+          ANSIBLE_LINT_VERSION: ${{ inputs.ansible_lint_version }}
+        run: |
+          set -euo pipefail
+          python -m pip install --no-cache-dir \
+            "ansible-core==${ANSIBLE_CORE_VERSION}" \
+            "ansible-lint==${ANSIBLE_LINT_VERSION}" \
+            "pyyaml==6.0.3"
+          ansible --version
+
+      - name: Check Ansible requirements pins
+        working-directory: framework
+        run: python tools/check_ansible_requirements.py
+
+      - name: Install Galaxy requirements
+        working-directory: framework
+        run: |
+          set -euo pipefail
+          should_install="$(
+            python - <<'PY'
+          import yaml
+          from pathlib import Path
+          raw = yaml.safe_load(Path("ansible/requirements.yml").read_text()) or {}
+          print("true" if raw.get("collections") or raw.get("roles") else "false")
+          PY
+          )"
+          if [ "${should_install}" != "true" ]; then
+            echo "No Galaxy requirements to install."
+            exit 0
+          fi
+          ansible-galaxy install -r ansible/requirements.yml
+
+      - name: Ansible lint
+        working-directory: framework
+        run: ansible-lint -c .ansible-lint ansible
+
+      - name: Syntax check
+        working-directory: framework
+        env:
+          INVENTORY_FILE: ${{ inputs.inventory_file }}
+          PLAYBOOK_FILE: ${{ inputs.playbook_file }}
+          EXTRA_VARS_FILES: ${{ inputs.extra_vars_files }}
+        run: |
+          set -euo pipefail
+          mapfile -t extra_args < <(bash tools/ci/ansible_extra_vars_args.sh "${EXTRA_VARS_FILES}" "../consumer")
+          ansible-playbook -i "${INVENTORY_FILE}" "${PLAYBOOK_FILE}" --syntax-check "${extra_args[@]}"
+
+      - name: Run playbook
+        working-directory: framework
+        env:
+          INVENTORY_FILE: ${{ inputs.inventory_file }}
+          PLAYBOOK_FILE: ${{ inputs.playbook_file }}
+          EXTRA_VARS_FILES: ${{ inputs.extra_vars_files }}
+          CHECK_MODE: ${{ inputs.check_mode }}
+        run: |
+          set -euo pipefail
+          args=( -i "${INVENTORY_FILE}" "${PLAYBOOK_FILE}" )
+          if [ "${CHECK_MODE}" = "true" ]; then
+            args+=( --check )
+          fi
+          mapfile -t extra_args < <(bash tools/ci/ansible_extra_vars_args.sh "${EXTRA_VARS_FILES}" "../consumer")
+          ansible-playbook "${args[@]}" "${extra_args[@]}"
+
+      - name: Upload Ansible evidence
+        if: ${{ always() && inputs.upload_evidence }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ansible-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: framework/.tmp/ansible-framework/
+          if-no-files-found: warn
+          retention-days: 14

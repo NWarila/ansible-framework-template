@@ -1,0 +1,9 @@
+{
+  "framework": "ansible-framework-template",
+  "profile": "{{ baseline_profile }}",
+  "inventory_hostname": "{{ inventory_hostname }}",
+  "playbook_dir": "{{ playbook_dir }}",
+  "managed_files": {{ baseline_managed_files | to_json }},
+  "become": false
+}
+

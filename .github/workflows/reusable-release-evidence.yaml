@@ -1,0 +1,222 @@
+name: Reusable Release Evidence
+
+on:
+  workflow_call:
+    inputs:
+      ansible_core_version:
+        description: Exact ansible-core version used for framework evidence.
+        required: true
+        type: string
+      ansible_lint_version:
+        description: Exact ansible-lint version used for framework evidence.
+        required: true
+        type: string
+      repo_type:
+        description: "Explicit repo type for release evidence: framework, consumer, or template."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    name: Build release evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository at release SHA
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate repo type
+        id: type
+        env:
+          REPO_TYPE: ${{ inputs.repo_type }}
+        run: |
+          set -euo pipefail
+          case "${REPO_TYPE}" in
+            framework|consumer|template) ;;
+            *)
+              echo "::error::unknown repo type '${REPO_TYPE}'"
+              exit 1
+              ;;
+          esac
+          echo "type=${REPO_TYPE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Setup Python
+        if: steps.type.outputs.type == 'framework'
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install framework tools
+        if: steps.type.outputs.type == 'framework'
+        env:
+          ANSIBLE_CORE_VERSION: ${{ inputs.ansible_core_version }}
+          ANSIBLE_LINT_VERSION: ${{ inputs.ansible_lint_version }}
+        run: |
+          set -euo pipefail
+          python -m pip install --no-cache-dir \
+            "ansible-core==${ANSIBLE_CORE_VERSION}" \
+            "ansible-lint==${ANSIBLE_LINT_VERSION}" \
+            "pyyaml==6.0.3" \
+            "ruff==0.13.0" \
+            "yamllint==1.35.1"
+
+      - name: Install OPA
+        if: steps.type.outputs.type == 'framework'
+        # renovate: datasource=github-releases depName=open-policy-agent/opa
+        env:
+          OPA_VERSION: "1.10.0"
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /usr/local/bin/opa \
+            "https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static"
+          chmod +x /usr/local/bin/opa
+
+      - name: Generate framework evidence
+        if: steps.type.outputs.type == 'framework'
+        env:
+          OUT: release-evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"/{logs,ansible,docs,policy}
+          : > "$OUT/.gate-results.tsv"
+
+          record() {
+            printf '%s\t%s\t%s\n' "$1" "$2" "$3" >> "$OUT/.gate-results.tsv"
+          }
+
+          if ansible-lint -c .ansible-lint ansible > "$OUT/logs/ansible-lint.txt" 2>&1; then
+            record "ansible-lint" pass "logs/ansible-lint.txt"
+          else
+            record "ansible-lint" fail "logs/ansible-lint.txt"
+          fi
+
+          if python tools/verify.py integration > "$OUT/logs/integration.txt" 2>&1; then
+            record "integration" pass "logs/integration.txt"
+          else
+            record "integration" fail "logs/integration.txt"
+          fi
+
+          if python tools/verify.py opa-policy > "$OUT/policy/opa-policy.txt" 2>&1; then
+            record "opa-policy" pass "policy/opa-policy.txt"
+          else
+            record "opa-policy" fail "policy/opa-policy.txt"
+          fi
+
+          if python tools/check_docs_layout.py > "$OUT/docs/docs-layout.txt" 2>&1; then
+            record "docs layout" pass "docs/docs-layout.txt"
+          else
+            record "docs layout" fail "docs/docs-layout.txt"
+          fi
+
+          if [ -d .tmp/ansible-framework ]; then
+            tar -C .tmp -czf "$OUT/ansible/reference-evidence.tar.gz" ansible-framework
+          fi
+
+          {
+            echo "release_sha=${GITHUB_SHA}"
+            echo "release_ref=${GITHUB_REF}"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "run_id=${GITHUB_RUN_ID}"
+          } > "$OUT/metadata.txt"
+
+      - name: Generate consumer evidence
+        if: steps.type.outputs.type == 'consumer' || steps.type.outputs.type == 'template'
+        env:
+          OUT: release-evidence
+          REPO_TYPE: ${{ steps.type.outputs.type }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"/{ansible,workflows}
+          echo "${REPO_TYPE}" > "$OUT/repo-type.txt"
+          if [ -d ansible ]; then
+            (cd ansible && find . -type f | sort) > "$OUT/ansible/inventory.txt"
+          fi
+          if [ -d .github/workflows ]; then
+            grep -RHE 'framework_ref:\s*[0-9a-f]{40}' .github/workflows \
+              > "$OUT/workflows/framework-ref.txt" || true
+          fi
+
+      - name: Render gate-results summary
+        if: steps.type.outputs.type == 'framework'
+        env:
+          OUT: release-evidence
+        run: |
+          set -euo pipefail
+          {
+            echo "## Release evidence - gate results"
+            echo ""
+            echo "| Gate | Result | Evidence |"
+            echo "| --- | --- | --- |"
+            while IFS=$'\t' read -r gate result evidence; do
+              echo "| $gate | $result | \`$evidence\` |"
+            done < "$OUT/.gate-results.tsv"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail failed framework evidence gates
+        if: steps.type.outputs.type == 'framework'
+        env:
+          OUT: release-evidence
+        run: |
+          set -euo pipefail
+          if grep -q $'\tfail\t' "$OUT/.gate-results.tsv"; then
+            cat "$OUT/.gate-results.tsv"
+            exit 1
+          fi
+
+      - name: Bundle evidence
+        run: tar -czf release-evidence.tar.gz release-evidence/
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: release-evidence
+          format: spdx-json
+          output-file: release-evidence.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+          dependency-snapshot: false
+
+      - name: Attest release evidence provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: release-evidence.tar.gz
+
+      - name: Attest release evidence SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-path: release-evidence.tar.gz
+          sbom-path: release-evidence.spdx.json
+
+      - name: Upload to workflow run
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-evidence
+          path: |
+            release-evidence.tar.gz
+            release-evidence.spdx.json
+          if-no-files-found: error
+
+      - name: Attach to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TAG}" ] || [[ "${TAG}" == refs/* ]]; then
+            echo "::warning::no release tag in context; skipping release upload."
+            exit 0
+          fi
+          gh release upload "${TAG}" release-evidence.tar.gz release-evidence.spdx.json

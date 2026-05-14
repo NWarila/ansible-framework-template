@@ -1,0 +1,32 @@
+---
+- name: baseline | validate framework variables
+  ansible.builtin.assert:
+    that:
+      - baseline_profile is string
+      - baseline_profile | length > 0
+      - baseline_profile is match('^[a-z0-9][a-z0-9_-]*$')
+      - baseline_output_dir is string
+      - baseline_output_dir | length > 0
+      - baseline_managed_files is iterable
+    fail_msg: Reference framework variables are invalid.
+
+- name: baseline | create evidence directory
+  ansible.builtin.file:
+    path: "{{ baseline_output_dir }}"
+    state: directory
+    mode: "0750"
+
+- name: baseline | write run evidence
+  ansible.builtin.template:
+    src: run-evidence.json.j2
+    dest: "{{ baseline_evidence_file }}"
+    mode: "0640"
+
+- name: baseline | write marker file
+  ansible.builtin.copy:
+    dest: "{{ baseline_marker_file }}"
+    mode: "0640"
+    content: |
+      ansible-framework-template reference run
+      profile={{ baseline_profile }}
+      inventory_hostname={{ inventory_hostname }}
