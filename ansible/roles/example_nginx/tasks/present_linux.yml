@@ -1,0 +1,77 @@
+---
+- name: Present | Ensure NGINX config directories exist
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  loop:
+    - "{{ example_nginx_config.paths.config_dir }}"
+    - "{{ example_nginx_config.paths.conf_d }}"
+    - "{{ example_nginx_config.paths.log_dir }}"
+  loop_control:
+    loop_var: example_nginx_directory
+  ansible.builtin.file:
+    path: "{{ example_nginx_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Present | Ensure web root exists
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  ansible.builtin.file:
+    path: "{{ example_nginx_config.paths.web_root }}"
+    state: directory
+    owner: "{{ example_nginx_config.nginx.user }}"
+    group: "{{ example_nginx_config.nginx.group }}"
+    mode: "{{ example_nginx_config.default_site.root_mode }}"
+
+- name: Present | Render main NGINX configuration
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  notify: Nginx | Reload nginx
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: "{{ example_nginx_config.paths.config }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Present | Render managed default site
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: example_nginx_config.default_site.enabled | bool
+  notify: Nginx | Reload nginx
+  ansible.builtin.template:
+    src: default-site.conf.j2
+    dest: "{{ example_nginx_config.paths.default_site }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Present | Remove managed default site when disabled
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: not example_nginx_config.default_site.enabled | bool
+  notify: Nginx | Reload nginx
+  ansible.builtin.file:
+    path: "{{ example_nginx_config.paths.default_site }}"
+    state: absent
+
+- name: Present | Render default index page
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: example_nginx_config.default_site.enabled | bool
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ example_nginx_config.paths.web_root }}/{{ example_nginx_config.default_site.index_file }}"
+    owner: "{{ example_nginx_config.nginx.user }}"
+    group: "{{ example_nginx_config.nginx.group }}"
+    mode: "{{ example_nginx_config.default_site.index_mode }}"
+
+- name: Present | Validate NGINX configuration
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  when: example_nginx_config.validation.enabled | bool
+  changed_when: false
+  ansible.builtin.command:
+    cmd: "{{ example_nginx_config.validation.command }}"
+
+- name: Present | Ensure NGINX service state
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  ansible.builtin.service:
+    name: "{{ example_nginx_config.service.name }}"
+    enabled: "{{ example_nginx_config.service.enabled }}"
+    state: "{{ example_nginx_config.service.state }}"

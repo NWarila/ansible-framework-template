@@ -63,5 +63,26 @@
     {"source": "tests/ci/validate_framework_ref.bats", "target": "tests/ci/validate_framework_ref.bats"},
     {"source": "tests/ci/validate_input_ref.bats", "target": "tests/ci/validate_input_ref.bats"}
   ],
-  "scaffold_starter": []
+  "scaffold_starter": [
+    {"source": "ansible/roles/example_nginx/README.md", "target": "ansible/roles/example_nginx/README.md"},
+    {"source": "ansible/roles/example_nginx/defaults/main.yml", "target": "ansible/roles/example_nginx/defaults/main.yml"},
+    {"source": "ansible/roles/example_nginx/handlers/main.yml", "target": "ansible/roles/example_nginx/handlers/main.yml"},
+    {"source": "ansible/roles/example_nginx/meta/main.yml", "target": "ansible/roles/example_nginx/meta/main.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/absent_debian.yml", "target": "ansible/roles/example_nginx/tasks/absent_debian.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/absent_linux.yml", "target": "ansible/roles/example_nginx/tasks/absent_linux.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/absent_redhat.yml", "target": "ansible/roles/example_nginx/tasks/absent_redhat.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/clean_debian.yml", "target": "ansible/roles/example_nginx/tasks/clean_debian.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/clean_linux.yml", "target": "ansible/roles/example_nginx/tasks/clean_linux.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/clean_redhat.yml", "target": "ansible/roles/example_nginx/tasks/clean_redhat.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/main.yml", "target": "ansible/roles/example_nginx/tasks/main.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/present_debian.yml", "target": "ansible/roles/example_nginx/tasks/present_debian.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/present_linux.yml", "target": "ansible/roles/example_nginx/tasks/present_linux.yml"},
+    {"source": "ansible/roles/example_nginx/tasks/present_redhat.yml", "target": "ansible/roles/example_nginx/tasks/present_redhat.yml"},
+    {"source": "ansible/roles/example_nginx/templates/default-site.conf.j2", "target": "ansible/roles/example_nginx/templates/default-site.conf.j2"},
+    {"source": "ansible/roles/example_nginx/templates/index.html.j2", "target": "ansible/roles/example_nginx/templates/index.html.j2"},
+    {"source": "ansible/roles/example_nginx/templates/nginx.conf.j2", "target": "ansible/roles/example_nginx/templates/nginx.conf.j2"},
+    {"source": "ansible/roles/example_nginx/vars/debian.yml", "target": "ansible/roles/example_nginx/vars/debian.yml"},
+    {"source": "ansible/roles/example_nginx/vars/main.yml", "target": "ansible/roles/example_nginx/vars/main.yml"},
+    {"source": "ansible/roles/example_nginx/vars/redhat.yml", "target": "ansible/roles/example_nginx/vars/redhat.yml"}
+  ]
 }

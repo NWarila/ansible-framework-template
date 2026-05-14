@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: example_nginx
+  author: NWarila
+  description: Production-shaped NGINX example role for Ansible framework repos.
+  license: MIT
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+dependencies: []

@@ -1,0 +1,25 @@
+# Managed by Ansible. Do not edit by hand.
+server {
+{% for listen in example_nginx_config.default_site.listen %}
+    listen {{ listen }};
+{% endfor %}
+    server_name {{ example_nginx_config.default_site.server_name | join(' ') }};
+
+    root {{ example_nginx_config.paths.web_root }};
+    index {{ example_nginx_config.default_site.index_file }};
+    client_max_body_size {{ example_nginx_config.nginx.client_max_body_size }};
+
+{% for header in example_nginx_config.default_site.extra_headers %}
+    add_header {{ header.name }} "{{ header.value }}" always;
+{% endfor %}
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location {{ example_nginx_config.default_site.health_path }} {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+}

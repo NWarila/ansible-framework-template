@@ -1,0 +1,11 @@
+---
+- name: Present | Install NGINX package with dnf
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  ansible.builtin.dnf:
+    name: "{{ example_nginx_config.package.names }}"
+    state: "{{ example_nginx_config.package.state }}"
+    update_cache: "{{ example_nginx_config.package.update_cache }}"
+    lock_timeout: "{{ example_nginx_config.package.lock_timeout }}"
+
+- name: Present | Run shared Linux configuration
+  ansible.builtin.import_tasks: present_linux.yml

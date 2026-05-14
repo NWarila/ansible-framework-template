@@ -1,0 +1,6 @@
+---
+- name: Clean | Remove role runtime directory
+  become: "{{ example_nginx_config.runtime.become | bool }}"
+  ansible.builtin.file:
+    path: "{{ example_nginx_config.runtime.temp_parent }}"
+    state: absent

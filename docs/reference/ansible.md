@@ -16,6 +16,21 @@ The framework runs from a Linux controller with Python 3.12+, ansible-core, and 
 | `ansible/files/`, `ansible/templates/`, `ansible/vars/` | Caller overlay destinations. |
 | `ansible/fixtures/runtime/` | Runtime fixtures copied in by caller workflows. |
 
+## Role Contract
+
+Use `ansible/roles/example_nginx/` as the canonical example for application roles.
+It demonstrates the Wazuh-derived loader pattern:
+
+- validate required inputs
+- gather only required OS facts
+- merge defaults, OS overlays, and user overrides
+- normalize lifecycle state
+- resolve the most specific OS task file
+- keep application behavior outside `tasks/main.yml`
+
+The role defaults expose one role-prefixed dictionary, OS overlays live in
+`vars/<os>.yml`, and lifecycle task files follow `<state>_<os>.yml`.
+
 ## Reference Run
 
 The reference playbook writes evidence under `.tmp/ansible-framework/reference/` and records:
