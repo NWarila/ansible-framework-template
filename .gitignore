@@ -23,7 +23,6 @@
 !/baseline-manifest.json
 
 !/.github/
-!/.github/CODEOWNERS
 !/.github/PULL_REQUEST_TEMPLATE.md
 !/.github/renovate.json5
 !/.github/workflows/
