@@ -134,6 +134,9 @@ def build_steps(case: str) -> dict[str, Step]:
     shell_helpers = sorted(
         path.relative_to(ROOT).as_posix() for path in (ROOT / "tools" / "ci").glob("*.sh")
     )
+    install_helper = ROOT / "tools" / "install_ci_tools.sh"
+    if install_helper.is_file():
+        shell_helpers.append(install_helper.relative_to(ROOT).as_posix())
     bats_tests = sorted(
         path.relative_to(ROOT).as_posix() for path in (ROOT / "tests" / "ci").glob("*.bats")
     )
@@ -170,6 +173,11 @@ def build_steps(case: str) -> dict[str, Step]:
             run([PYTHON, "tools/ci/check_workflow_run_inputs.py", ".github/workflows"]),
             run([*command_from_env("BATS", "bats"), *bats_tests]),
         ),
+        "privileged-workflows": lambda: (
+            install("pyyaml==6.0.3"),
+            run([PYTHON, "tools/check_privileged_workflows.py", "--repo-root", "."]),
+            run([PYTHON, "tools/run_privileged_workflow_tests.py"]),
+        ),
         "opa-test": lambda: run(["opa", "test", "policies/opa"]),
         "opa-policy": opa_policy,
         "manifest-check": lambda: run(
@@ -187,7 +195,15 @@ TARGETS: dict[str, tuple[str, ...]] = {
     "lint": ("ansible-lint", "syntax", "ruff", "yamllint"),
     "policy": ("opa-test", "opa-policy"),
     "docs-check": ("docs-layout", "adr-schema"),
-    "ci": ("lint", "test", "workflow-helper-tests", "policy", "docs-check", "manifest-check"),
+    "ci": (
+        "lint",
+        "test",
+        "workflow-helper-tests",
+        "privileged-workflows",
+        "policy",
+        "docs-check",
+        "manifest-check",
+    ),
     "verify": ("ci", "integration"),
 }
 
@@ -217,4 +233,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
