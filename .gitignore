@@ -107,6 +107,7 @@
 !/docs/reference/ansible.md
 !/docs/reference/invariants.md
 !/docs/reference/mirroring.md
+!/docs/reference/quality-gates.md
 !/docs/reference/release-gates.md
 !/docs/reference/runner-protocol.md
 !/docs/explanation/
@@ -152,6 +153,9 @@
 !/tools/check_adr_schema.py
 !/tools/check_baseline_manifest.py
 !/tools/check_docs_layout.py
+!/tools/check_privileged_workflows.py
+!/tools/install_ci_tools.sh
+!/tools/run_privileged_workflow_tests.py
 !/tools/test_ansible_requirements.py
 !/tools/verify.py
 !/tools/ci/
@@ -171,3 +175,18 @@
 !/tests/ci/check_workflow_run_inputs.bats
 !/tests/ci/validate_framework_ref.bats
 !/tests/ci/validate_input_ref.bats
+!/tests/fixtures/
+!/tests/fixtures/privileged-workflows/
+!/tests/fixtures/privileged-workflows/bad/
+!/tests/fixtures/privileged-workflows/bad/.github/
+!/tests/fixtures/privileged-workflows/bad/.github/workflows/
+!/tests/fixtures/privileged-workflows/bad/.github/workflows/auto-merge.yaml
+!/tests/fixtures/privileged-workflows/good/
+!/tests/fixtures/privileged-workflows/good/.github/
+!/tests/fixtures/privileged-workflows/good/.github/workflows/
+!/tests/fixtures/privileged-workflows/good/.github/workflows/auto-merge.yaml
+!/tests/fixtures/privileged-workflows/reusable-bad/
+!/tests/fixtures/privileged-workflows/reusable-bad/.github/
+!/tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/
+!/tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/caller.yaml
+!/tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/reusable-pwn.yaml
