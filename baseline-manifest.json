@@ -12,6 +12,7 @@
     {"source": "LICENSE", "target": "LICENSE"},
     {"source": "Makefile", "target": "Makefile"},
     {"source": "baseline-manifest.json", "target": "baseline-manifest.json"},
+    {"source": ".github/CODEOWNERS", "target": ".github/CODEOWNERS"},
     {"source": ".github/PULL_REQUEST_TEMPLATE.md", "target": ".github/PULL_REQUEST_TEMPLATE.md"},
     {"source": ".github/renovate.json5", "target": ".github/renovate.json5"},
     {"source": ".github/workflows/ci.yaml", "target": ".github/workflows/ci.yaml"},
