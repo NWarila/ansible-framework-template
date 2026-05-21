@@ -31,6 +31,7 @@
     {"source": "ansible/inventory/localhost.yml", "target": "ansible/inventory/localhost.yml"},
     {"source": "ansible/templates/.gitkeep", "target": "ansible/templates/.gitkeep"},
     {"source": "docs/reference/mirroring.md", "target": "docs/reference/mirroring.md"},
+    {"source": "docs/reference/quality-gates.md", "target": "docs/reference/quality-gates.md"},
     {"source": "docs/reference/release-gates.md", "target": "docs/reference/release-gates.md"},
     {"source": "docs/reference/runner-protocol.md", "target": "docs/reference/runner-protocol.md"},
     {"source": "docs/decision-records/template/README.md", "target": "docs/decision-records/template/README.md"},
@@ -47,6 +48,9 @@
     {"source": "tools/check_adr_schema.py", "target": "tools/check_adr_schema.py"},
     {"source": "tools/check_baseline_manifest.py", "target": "tools/check_baseline_manifest.py"},
     {"source": "tools/check_docs_layout.py", "target": "tools/check_docs_layout.py"},
+    {"source": "tools/check_privileged_workflows.py", "target": "tools/check_privileged_workflows.py"},
+    {"source": "tools/install_ci_tools.sh", "target": "tools/install_ci_tools.sh"},
+    {"source": "tools/run_privileged_workflow_tests.py", "target": "tools/run_privileged_workflow_tests.py"},
     {"source": "tools/test_ansible_requirements.py", "target": "tools/test_ansible_requirements.py"},
     {"source": "tools/verify.py", "target": "tools/verify.py"},
     {"source": "tools/ci/_config.py", "target": "tools/ci/_config.py"},
@@ -61,7 +65,11 @@
     {"source": "tests/ci/apply_overlay.bats", "target": "tests/ci/apply_overlay.bats"},
     {"source": "tests/ci/check_workflow_run_inputs.bats", "target": "tests/ci/check_workflow_run_inputs.bats"},
     {"source": "tests/ci/validate_framework_ref.bats", "target": "tests/ci/validate_framework_ref.bats"},
-    {"source": "tests/ci/validate_input_ref.bats", "target": "tests/ci/validate_input_ref.bats"}
+    {"source": "tests/ci/validate_input_ref.bats", "target": "tests/ci/validate_input_ref.bats"},
+    {"source": "tests/fixtures/privileged-workflows/bad/.github/workflows/auto-merge.yaml", "target": "tests/fixtures/privileged-workflows/bad/.github/workflows/auto-merge.yaml"},
+    {"source": "tests/fixtures/privileged-workflows/good/.github/workflows/auto-merge.yaml", "target": "tests/fixtures/privileged-workflows/good/.github/workflows/auto-merge.yaml"},
+    {"source": "tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/caller.yaml", "target": "tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/caller.yaml"},
+    {"source": "tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/reusable-pwn.yaml", "target": "tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/reusable-pwn.yaml"}
   ],
   "scaffold_starter": [
     {"source": "ansible/roles/example_nginx/README.md", "target": "ansible/roles/example_nginx/README.md"},
