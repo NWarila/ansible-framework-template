@@ -92,6 +92,8 @@ jobs:
         env:
           # renovate: datasource=github-releases depName=rhysd/actionlint
           ACTIONLINT_VERSION: "1.7.12"
+          # renovate: datasource=npm depName=markdownlint-cli2
+          MARKDOWNLINT_CLI2_VERSION: "0.22.1"
           # renovate: datasource=github-releases depName=open-policy-agent/opa
           OPA_VERSION: "1.10.0"
         run: bash tools/install_ci_tools.sh

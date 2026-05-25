@@ -72,7 +72,18 @@ install_actionlint() {
   "${bindir}/actionlint" -version
 }
 
+install_markdownlint_cli2() {
+  local v="$MARKDOWNLINT_CLI2_VERSION"
+  local prefix="${HOME}/.local/markdownlint-cli2"
+
+  mkdir -p "$prefix"
+  npm install --silent --no-audit --no-fund --prefix "$prefix" "markdownlint-cli2@${v}"
+  ln -sf "${prefix}/node_modules/.bin/markdownlint-cli2" "${bindir}/markdownlint-cli2"
+  "${bindir}/markdownlint-cli2" --version
+}
+
 require_var ACTIONLINT_VERSION
+require_var MARKDOWNLINT_CLI2_VERSION
 require_var OPA_VERSION
 
 bindir="${HOME}/.local/bin"
@@ -87,4 +98,5 @@ workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 
 install_actionlint
+install_markdownlint_cli2
 install_opa
