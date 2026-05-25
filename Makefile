@@ -56,6 +56,7 @@ adr-schema:
 lint:
 	$(MAKE) ansible-lint
 	$(MAKE) syntax
+	$(MAKE) check
 	$(MAKE) ruff
 	$(MAKE) yamllint
 
