@@ -49,6 +49,41 @@ install_opa() {
   "${bindir}/opa" version
 }
 
+install_actionlint() {
+  local v="$ACTIONLINT_VERSION"
+  local tar="actionlint_${v}_linux_amd64.tar.gz"
+  local sums="actionlint_${v}_checksums.txt"
+  local base="https://github.com/rhysd/actionlint/releases/download/v${v}"
+
+  curl --fail --silent --show-error --location -o "${workdir}/${tar}" "${base}/${tar}"
+  curl --fail --silent --show-error --location -o "${workdir}/${sums}" "${base}/${sums}"
+
+  local expected
+  expected="$(awk -v f="${tar}" '$2 == f {print $1}' "${workdir}/${sums}")"
+  if [ -z "$expected" ]; then
+    echo "error: ${tar} not found in ${sums}" >&2
+    exit 1
+  fi
+
+  verify_sha256 "${workdir}/${tar}" "$expected"
+  mkdir -p "${workdir}/actionlint"
+  tar -xzf "${workdir}/${tar}" -C "${workdir}/actionlint"
+  install -m 0755 "${workdir}/actionlint/actionlint" "${bindir}/actionlint"
+  "${bindir}/actionlint" -version
+}
+
+install_markdownlint_cli2() {
+  local v="$MARKDOWNLINT_CLI2_VERSION"
+  local prefix="${HOME}/.local/markdownlint-cli2"
+
+  mkdir -p "$prefix"
+  npm install --silent --no-audit --no-fund --prefix "$prefix" "markdownlint-cli2@${v}"
+  ln -sf "${prefix}/node_modules/.bin/markdownlint-cli2" "${bindir}/markdownlint-cli2"
+  "${bindir}/markdownlint-cli2" --version
+}
+
+require_var ACTIONLINT_VERSION
+require_var MARKDOWNLINT_CLI2_VERSION
 require_var OPA_VERSION
 
 bindir="${HOME}/.local/bin"
@@ -62,4 +97,6 @@ fi
 workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 
+install_actionlint
+install_markdownlint_cli2
 install_opa
