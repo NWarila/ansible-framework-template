@@ -26,6 +26,8 @@ python tools/verify.py integration
 
 `python tools/verify.py ci` runs Ansible linting, syntax checks, Python tooling, YAML checks, OPA policy, docs layout, ADR schema, workflow helper tests, and manifest checks. `python tools/verify.py integration` executes the credential-free localhost playbook and asserts the generated evidence.
 
+The complete gate inventory lives in [`docs/reference/quality-gates.md`](docs/reference/quality-gates.md).
+
 ## Ansible Framework Shape
 
 | File | Role |
