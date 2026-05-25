@@ -163,6 +163,10 @@ def build_steps(case: str) -> dict[str, Step]:
                 ]
             ),
         ),
+        "actionlint": lambda: run([*command_from_env("ACTIONLINT", "actionlint")]),
+        "markdownlint": lambda: run(
+            [*command_from_env("MARKDOWNLINT", "markdownlint-cli2"), "**/*.md"]
+        ),
         "test": lambda: (
             install("pyyaml==6.0.3"),
             run([PYTHON, "tools/test_ansible_requirements.py"]),
@@ -197,10 +201,12 @@ TARGETS: dict[str, tuple[str, ...]] = {
     "docs-check": ("docs-layout", "adr-schema"),
     "ci": (
         "lint",
+        "actionlint",
         "test",
         "workflow-helper-tests",
         "privileged-workflows",
         "policy",
+        "markdownlint",
         "docs-check",
         "manifest-check",
     ),
