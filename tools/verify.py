@@ -192,7 +192,7 @@ def build_steps(case: str) -> dict[str, Step]:
 
 
 TARGETS: dict[str, tuple[str, ...]] = {
-    "lint": ("ansible-lint", "syntax", "ruff", "yamllint"),
+    "lint": ("ansible-lint", "syntax", "check", "ruff", "yamllint"),
     "policy": ("opa-test", "opa-policy"),
     "docs-check": ("docs-layout", "adr-schema"),
     "ci": (
