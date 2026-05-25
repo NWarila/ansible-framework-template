@@ -4,6 +4,8 @@ Derivative Ansible frameworks should mirror the files listed under `byte_identic
 
 Files listed under `scaffold_starter` are seed examples rather than permanent mirrors. Downstream frameworks may copy, rename, or replace those files after they understand the pattern.
 
+Use `byte_identical` only for files a downstream framework should keep byte-for-byte with this template. Use `scaffold_starter` for examples, fixtures, and implementation seeds that demonstrate the pattern but are expected to change in a real framework.
+
 The manifest is intentionally narrower than a full repo copy. It does not require downstream frameworks to keep the reference role behavior byte-identical.
 
 ## Framework-Owned Layer
