@@ -18,8 +18,12 @@ on:
       languages:
         description: |
           JSON array of CodeQL languages to analyze. Defaults to ["actions"]
-          for Ansible framework repos. Consumers with additional Python
-          tooling can pass '["actions","python"]'.
+          which scans only the workflow YAML files. CodeQL has no native
+          support for HashiCorp HCL (Terraform, Packer) or Ansible playbook
+          YAML, so stack-specific source code is not analyzed by default.
+          Consumers with additional language coverage (e.g. python tooling,
+          javascript build scripts) can extend the matrix via this input:
+          '["actions","python"]'.
         required: false
         type: string
         default: '["actions"]'
