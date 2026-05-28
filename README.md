@@ -1,5 +1,9 @@
 # ansible-framework-template
 
+[![CI](https://github.com/NWarila/ansible-framework-template/actions/workflows/ci.yaml/badge.svg)](https://github.com/NWarila/ansible-framework-template/actions/workflows/ci.yaml)
+[![Security](https://github.com/NWarila/ansible-framework-template/actions/workflows/security.yaml/badge.svg)](https://github.com/NWarila/ansible-framework-template/actions/workflows/security.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Canonical template for Ansible framework repositories: repos that own reusable configuration contracts, validation tooling, release evidence, and caller integration patterns for Terraform and Packer workflows.
 
 The reference framework is intentionally credential-free. It targets `localhost` with `ansible_connection: local`, writes evidence under `.tmp/ansible-framework/`, and never uses `become`. Real frameworks replace the baseline role with operating-system, application, or platform-specific roles while keeping the same repo-quality surface.
