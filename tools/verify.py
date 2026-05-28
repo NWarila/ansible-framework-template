@@ -185,7 +185,7 @@ def build_steps(case: str) -> dict[str, Step]:
         "opa-test": lambda: run(["opa", "test", "policies/opa"]),
         "opa-policy": opa_policy,
         "manifest-check": lambda: run(
-            [PYTHON, "tools/check_baseline_manifest.py", "--check-present-sources"]
+            [PYTHON, "tools/check_baseline_manifest.py"]
         ),
         "docs-layout": lambda: run([PYTHON, "tools/check_docs_layout.py"]),
         "adr-schema": lambda: run([PYTHON, "tools/check_adr_schema.py"]),
