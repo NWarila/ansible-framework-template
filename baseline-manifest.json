@@ -2,6 +2,20 @@
   "version": "2",
   "byte_identical": [
     {
+      "source": ".github/workflows/security.yaml",
+      "target": ".github/workflows/security.yaml"
+    },
+    {
+      "source": "docs/reference/mirroring.md",
+      "target": "docs/reference/mirroring.md"
+    },
+    {
+      "source": "docs/reference/runner-protocol.md",
+      "target": "docs/reference/runner-protocol.md"
+    }
+  ],
+  "scaffold_starter": [
+    {
       "source": ".ansible-lint",
       "target": ".ansible-lint"
     },
@@ -13,40 +27,6 @@
       "source": ".gitattributes",
       "target": ".gitattributes"
     },
-    {
-      "source": ".markdownlint-cli2.jsonc",
-      "target": ".markdownlint-cli2.jsonc"
-    },
-    {
-      "source": ".pre-commit-config.yaml",
-      "target": ".pre-commit-config.yaml"
-    },
-    {
-      "source": "requirements-dev.txt",
-      "target": "requirements-dev.txt"
-    },
-    {
-      "source": ".github/workflows/security.yaml",
-      "target": ".github/workflows/security.yaml"
-    },
-    {
-      "source": "docs/reference/mirroring.md",
-      "target": "docs/reference/mirroring.md"
-    },
-    {
-      "source": "docs/reference/runner-protocol.md",
-      "target": "docs/reference/runner-protocol.md"
-    },
-    {
-      "source": "tools/check_docs_layout.py",
-      "target": "tools/check_docs_layout.py"
-    },
-    {
-      "source": "tools/install_ci_tools.sh",
-      "target": "tools/install_ci_tools.sh"
-    }
-  ],
-  "scaffold_starter": [
     {
       "source": ".github/CODEOWNERS",
       "target": ".github/CODEOWNERS"
@@ -62,6 +42,14 @@
     {
       "source": ".gitignore",
       "target": ".gitignore"
+    },
+    {
+      "source": ".markdownlint-cli2.jsonc",
+      "target": ".markdownlint-cli2.jsonc"
+    },
+    {
+      "source": ".pre-commit-config.yaml",
+      "target": ".pre-commit-config.yaml"
     },
     {
       "source": "Makefile",
@@ -166,6 +154,18 @@
     {
       "source": "docs/reference/release-gates.md",
       "target": "docs/reference/release-gates.md"
+    },
+    {
+      "source": "requirements-dev.txt",
+      "target": "requirements-dev.txt"
+    },
+    {
+      "source": "tools/check_docs_layout.py",
+      "target": "tools/check_docs_layout.py"
+    },
+    {
+      "source": "tools/install_ci_tools.sh",
+      "target": "tools/install_ci_tools.sh"
     }
   ]
 }
