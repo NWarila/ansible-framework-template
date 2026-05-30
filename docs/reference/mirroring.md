@@ -1,8 +1,8 @@
 # Mirroring And Consumer Baseline
 
-Derivative Ansible frameworks should mirror the files listed under `byte_identical` in [`baseline-manifest.json`](../../baseline-manifest.json). That set is the stable scaffold: repository hygiene, docs layout checks, security callers, reusable Ansible workflow protocol, OPA policy, and the Python verification entrypoint.
+Derivative Ansible frameworks should mirror the files listed under `byte_identical` in [`baseline-manifest.json`](../../baseline-manifest.json). That set is intentionally narrow: the security workflow caller (`.github/workflows/security.yaml`), this mirroring contract (`docs/reference/mirroring.md`), and the reusable Ansible runner protocol reference (`docs/reference/runner-protocol.md`).
 
-Files listed under `scaffold_starter` are seed examples rather than permanent mirrors. Downstream frameworks may copy, rename, or replace those files after they understand the pattern.
+Files listed under `scaffold_starter` are seed examples rather than permanent mirrors. They include repository hygiene files and the docs layout checks. Downstream frameworks may copy, rename, or replace those files after they understand the pattern.
 
 Use `byte_identical` only for files a downstream framework should keep byte-for-byte with this template. Use `scaffold_starter` for examples, fixtures, and implementation seeds that demonstrate the pattern but are expected to change in a real framework.
 
