@@ -35,4 +35,8 @@ The `org/` scope is mirrored from `NWarila/.github` and enforced by the org drif
 | [ADR-0004](org/0004-use-renovate-for-dependency-updates.md) | Accepted | Use Renovate for dependency updates. |
 | [ADR-0005](org/0005-pin-terraform-and-provider-versions-exactly.md) | Accepted | Pin Terraform and provider versions exactly. |
 
-The `.gitkeep` placeholder in `repo/` keeps the directory skeleton complete until this repository has a repo-specific ADR.
+## Repo ADRs
+
+| ADR | Status | Decision |
+| --- | --- | --- |
+| [ADR-repo/0001](repo/0001-use-canonical-role-loader-in-every-role.md) | Accepted | Use a canonical role-loader in every Ansible role; keep application behavior in OS/state task files. |
