@@ -29,13 +29,22 @@ verify_sha256() {
   fi
 }
 
+fetch_url() {
+  local output="$1"
+  local url="$2"
+
+  curl --fail --silent --show-error --location \
+    --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 20 \
+    -o "$output" "$url"
+}
+
 install_opa() {
   local v="$OPA_VERSION"
   local bin="opa_linux_amd64_static"
   local base="https://github.com/open-policy-agent/opa/releases/download/v${v}"
 
-  curl --fail --silent --show-error --location -o "${workdir}/${bin}" "${base}/${bin}"
-  curl --fail --silent --show-error --location -o "${workdir}/${bin}.sha256" "${base}/${bin}.sha256"
+  fetch_url "${workdir}/${bin}" "${base}/${bin}"
+  fetch_url "${workdir}/${bin}.sha256" "${base}/${bin}.sha256"
 
   local expected
   expected="$(awk '{print $1}' "${workdir}/${bin}.sha256")"
@@ -55,8 +64,8 @@ install_actionlint() {
   local sums="actionlint_${v}_checksums.txt"
   local base="https://github.com/rhysd/actionlint/releases/download/v${v}"
 
-  curl --fail --silent --show-error --location -o "${workdir}/${tar}" "${base}/${tar}"
-  curl --fail --silent --show-error --location -o "${workdir}/${sums}" "${base}/${sums}"
+  fetch_url "${workdir}/${tar}" "${base}/${tar}"
+  fetch_url "${workdir}/${sums}" "${base}/${sums}"
 
   local expected
   expected="$(awk -v f="${tar}" '$2 == f {print $1}' "${workdir}/${sums}")"
